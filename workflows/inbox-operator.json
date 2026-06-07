@@ -1,0 +1,46 @@
+{
+  "name": "Inbox-Operator",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cf92e066-52a9-4726-ba8b-2f87a4e59e96",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QL7cF3zz7kjLa6bK",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "c7d099d3-3e48-446e-84d9-8906462a4d27",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feddd20a06f3f583b8a4b677260ef9430851629f74097d296fdaa301e5136807"
+  },
+  "nodeGroups": [],
+  "id": "qNw6u4LY9ybRJz4U",
+  "tags": []
+}

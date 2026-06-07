@@ -19,3 +19,8 @@ Thumbs.db
 
 # Large data / exports we don't want
 *.log
+
+# Stray secret/credential files
+g_cloud.txt
+*secret*
+*credentials*.txt
