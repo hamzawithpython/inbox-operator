@@ -1,0 +1,21 @@
+﻿# Secrets & env
+.env
+*.env
+!.env.example
+
+# n8n local data (contains encryption key + credentials DB — NEVER commit)
+n8n_data/
+.n8n/
+
+# Python (for any helper scripts later)
+venv/
+__pycache__/
+*.pyc
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+
+# Large data / exports we don't want
+*.log
