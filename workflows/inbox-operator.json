@@ -529,6 +529,67 @@
           "name": "Groq API"
         }
       }
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $json.emailId }}",
+        "labelIds": [
+          "Label_6061653304355574568"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        -656
+      ],
+      "id": "8ac69b31-6ab6-4fbf-b208-452a0ba3f004",
+      "name": "File Promotion",
+      "webhookId": "3e6a4bab-20b5-40f5-96b3-b3fc50a797dc",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QL7cF3zz7kjLa6bK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "removeLabels",
+        "messageId": "={{ $('Parse Classification').first().json.emailId }}",
+        "labelIds": [
+          "INBOX"
+        ]
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1008,
+        -656
+      ],
+      "id": "8841104a-c961-4a72-b004-bee524f4c635",
+      "name": "Archive Promotion",
+      "webhookId": "9dcd4ca8-ab2b-4146-a15d-1e69c307d6a7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QL7cF3zz7kjLa6bK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('Parse Classification').first().json;\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    action: \"FILED_PROMOTION\",\n    category: d.category,\n    from: d.fromAddress,\n    subject: d.subject\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1216,
+        -656
+      ],
+      "id": "adcd2e0d-95e2-471d-b54d-f3cd88f6562e",
+      "name": "Log Promotion"
     }
   ],
   "pinData": {},
@@ -690,7 +751,13 @@
             "index": 0
           }
         ],
-        [],
+        [
+          {
+            "node": "File Promotion",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Draft Reply",
@@ -710,6 +777,28 @@
           }
         ]
       ]
+    },
+    "File Promotion": {
+      "main": [
+        [
+          {
+            "node": "Archive Promotion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Archive Promotion": {
+      "main": [
+        [
+          {
+            "node": "Log Promotion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -717,7 +806,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "09e96d88-6ee8-4f33-9111-39d9b545737c",
+  "versionId": "bc30a13a-8f59-47b7-b059-89e7cf1b8f9c",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "feddd20a06f3f583b8a4b677260ef9430851629f74097d296fdaa301e5136807"
