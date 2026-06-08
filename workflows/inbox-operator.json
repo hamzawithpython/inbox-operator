@@ -100,8 +100,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        864,
-        -848
+        560,
+        -496
       ],
       "id": "1b3dafc7-4692-49e2-a49a-0d814a69c089",
       "name": "Draft Reply",
@@ -119,8 +119,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        688,
-        -592
+        784,
+        -352
       ],
       "id": "601406c2-7aba-437e-ad0e-e6ea7d594c85",
       "name": "Prepare Draft"
@@ -137,8 +137,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        816,
-        -336
+        1552,
+        -448
       ],
       "id": "4a4130ef-8ae0-4417-85e4-12447af3b956",
       "name": "Create Gmail Draft",
@@ -160,8 +160,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        1040,
-        -496
+        1744,
+        -448
       ],
       "id": "7ddc6943-df94-43ef-9c52-99e77bc29a9e",
       "name": "Send Approval Request",
@@ -183,8 +183,8 @@
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
       "position": [
-        1216,
-        -544
+        1968,
+        -464
       ],
       "id": "e8449c3b-17f4-40c3-bfe5-7acbd4f47188",
       "name": "Approval Gate",
@@ -197,8 +197,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1392,
-        -544
+        2192,
+        -496
       ],
       "id": "19f6a62c-1b19-4927-a349-5b771c8789fa",
       "name": "Read Decision"
@@ -210,8 +210,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        272,
-        -112
+        368,
+        -160
       ],
       "id": "d32d295a-8319-4990-89c5-43a8cc285d0e",
       "name": "Code in JavaScript"
@@ -244,8 +244,8 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        1664,
-        -528
+        2448,
+        -448
       ],
       "id": "9426e760-1952-4a47-a169-5b802a9b538f",
       "name": "If1"
@@ -261,8 +261,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        1856,
-        -640
+        2592,
+        -800
       ],
       "id": "62f3ed02-173a-4d97-8c75-cbe3c568218c",
       "name": "Reply to a message",
@@ -281,8 +281,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2112,
-        -496
+        2832,
+        -480
       ],
       "id": "fb165e56-3963-4f1a-9c61-7770ab986b87",
       "name": "Log Sent"
@@ -294,8 +294,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1872,
-        -272
+        2656,
+        -224
       ],
       "id": "950013b1-6c87-4185-88d5-c86391227ac0",
       "name": "Log Rejected"
@@ -437,8 +437,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        368,
-        -672
+        384,
+        -720
       ],
       "id": "bf77bd02-3b2c-4dcd-949a-9c3c03763d8c",
       "name": "Route by Category",
@@ -494,6 +494,41 @@
       ],
       "id": "4105ec0a-b2e0-4362-ae88-5e6abc6f62f0",
       "name": "Is Real Email"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"llama-3.3-70b-versatile\",\n  temperature: 0.3,\n  messages: [\n    {\n      role: \"system\",\n      content: \"You are drafting a reply to a FINANCE-related email (invoices, payments, billing) on behalf of the inbox owner. Write a concise, professional, and careful reply. Be precise and formal. CRITICAL: do not confirm, dispute, promise, or invent any specific amounts, dates, payment commitments, or account details that are not explicitly stated in the original email. If a financial decision or confirmation is needed, defer it to the inbox owner rather than committing. Output ONLY the email body text: no subject line, no markdown, no placeholders. Sign off as 'Best regards'.\"\n    },\n    {\n      role: \"user\",\n      content: \"Reply to this finance email:\\n\\nFrom: \" + $json.fromName + \"\\nSubject: \" + $json.subject + \"\\n\\n\" + $json.bodyText\n    }\n  ]\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        560,
+        -864
+      ],
+      "id": "6915d279-937d-464b-b536-ff440f37cd9a",
+      "name": "Draft Finance Reply",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Zh98zCykT2KnQ8Uu",
+          "name": "Groq API"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -643,6 +678,38 @@
           }
         ]
       ]
+    },
+    "Route by Category": {
+      "main": [
+        [],
+        [],
+        [
+          {
+            "node": "Draft Finance Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Draft Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Finance Reply": {
+      "main": [
+        [
+          {
+            "node": "Prepare Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -650,7 +717,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "3546a5d5-5100-4580-abfb-d23f9fa9c054",
+  "versionId": "09e96d88-6ee8-4f33-9111-39d9b545737c",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "feddd20a06f3f583b8a4b677260ef9430851629f74097d296fdaa301e5136807"
