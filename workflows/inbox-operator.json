@@ -1,0 +1,165 @@
+{
+  "name": "Inbox-Operator",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        0
+      ],
+      "id": "cf92e066-52a9-4726-ba8b-2f87a4e59e96",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QL7cF3zz7kjLa6bK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"llama-3.3-70b-versatile\",\n  temperature: 0,\n  response_format: { type: \"json_object\" },\n  messages: [\n    {\n      role: \"system\",\n      content: \"You are an email triage assistant. Classify the email into exactly one intent and return STRICT JSON only, no prose. Schema: {\\\"intent\\\": one of [\\\"meeting_request\\\",\\\"question\\\",\\\"sales_pitch\\\",\\\"urgent\\\",\\\"spam\\\",\\\"other\\\"], \\\"priority\\\": one of [\\\"high\\\",\\\"normal\\\",\\\"low\\\"], \\\"reason\\\": short one-sentence justification, \\\"needs_reply\\\": boolean}. Base classification only on the email content.\"\n    },\n    {\n      role: \"user\",\n      content: \"Subject: \" + ($json.subject || \"\") + \"\\n\\nFrom: \" + ($json.from.value[0].name || \"\") + \" <\" + ($json.from.value[0].address || \"\") + \">\\n\\nBody:\\n\" + ($json.text || $json.snippet || \"\")\n    }\n  ]\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        0
+      ],
+      "id": "7b6532fd-45d2-4105-a6c5-6389851d2d14",
+      "name": "Classify Intent",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Zh98zCykT2KnQ8Uu",
+          "name": "Groq API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Groq's classification is a JSON string inside choices[0].message.content.\n// Parse it, and merge with the original email fields (which live on the\n// Gmail Trigger output, two nodes back) so downstream nodes have everything.\n\nconst groqResponse = $input.first().json;\nconst rawContent = groqResponse.choices[0].message.content;\n\nlet classification;\ntry {\n  classification = JSON.parse(rawContent);\n} catch (e) {\n  // Fallback if the model ever returns non-JSON — fail safe to manual review.\n  classification = {\n    intent: \"other\",\n    priority: \"normal\",\n    reason: \"Could not parse classifier output: \" + e.message,\n    needs_reply: true\n  };\n}\n\n// Pull the original email off the Gmail Trigger node by name.\nconst email = $('Gmail Trigger').first().json;\n\nreturn [\n  {\n    json: {\n      // classification\n      intent: classification.intent,\n      priority: classification.priority,\n      reason: classification.reason,\n      needs_reply: classification.needs_reply,\n      // original email, normalised into flat fields\n      emailId: email.id,\n      threadId: email.threadId,\n      subject: email.subject || \"\",\n      fromName: email.from?.value?.[0]?.name || \"\",\n      fromAddress: email.from?.value?.[0]?.address || \"\",\n      bodyText: email.text || email.snippet || \"\"\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "a07e61d3-ede4-48a4-be83-6cb09f4b90b1",
+      "name": "Parse Classification"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n  model: \"llama-3.3-70b-versatile\",\n  temperature: 0.4,\n  messages: [\n    {\n      role: \"system\",\n      content: \"You are drafting a reply on behalf of the inbox owner. Write a concise, professional, friendly email reply to the message below. Match the sender's tone. Do not invent specific facts, commitments, dates, or prices that are not in the original email — if a decision is needed, keep it open and defer to the inbox owner. Output ONLY the email body text: no subject line, no 'Subject:', no markdown, no placeholders like [Your Name]. Sign off as 'Best regards'.\"\n    },\n    {\n      role: \"user\",\n      content: \"This email was classified as intent=\" + $json.intent + \", priority=\" + $json.priority + \".\\n\\nReply to this email:\\n\\nFrom: \" + $json.fromName + \"\\nSubject: \" + $json.subject + \"\\n\\n\" + $json.bodyText\n    }\n  ]\n}) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        0
+      ],
+      "id": "1b3dafc7-4692-49e2-a49a-0d814a69c089",
+      "name": "Draft Reply",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "Zh98zCykT2KnQ8Uu",
+          "name": "Groq API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Classify Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Intent": {
+      "main": [
+        [
+          {
+            "node": "Parse Classification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Classification": {
+      "main": [
+        [
+          {
+            "node": "Draft Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "a64cbea8-982c-45ff-bd61-75e57e9079da",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "feddd20a06f3f583b8a4b677260ef9430851629f74097d296fdaa301e5136807"
+  },
+  "nodeGroups": [],
+  "id": "qNw6u4LY9ybRJz4U",
+  "tags": []
+}
