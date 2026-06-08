@@ -518,8 +518,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        560,
-        -864
+        832,
+        -880
       ],
       "id": "6915d279-937d-464b-b536-ff440f37cd9a",
       "name": "Draft Finance Reply",
@@ -590,6 +590,46 @@
       ],
       "id": "adcd2e0d-95e2-471d-b54d-f3cd88f6562e",
       "name": "Log Promotion"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0B90CDA5N1",
+          "mode": "id"
+        },
+        "text": "={{ \"🚨 *HIGH PRIORITY EMAIL*\\n\\n*From:* \" + $('Parse Classification').first().json.fromName + \" (\" + $('Parse Classification').first().json.fromAddress + \")\\n*Subject:* \" + $('Parse Classification').first().json.subject + \"\\n\\n\" + $('Parse Classification').first().json.bodyText + \"\\n\\n_Reason:_ \" + $('Parse Classification').first().json.reason }}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        592,
+        -976
+      ],
+      "id": "97a6fa4d-3c19-420b-8b3c-ec87f06fe8b9",
+      "name": "Alert High Priority",
+      "webhookId": "8910a3be-edc8-4dc7-9a00-06c8989fabc9",
+      "credentials": {
+        "slackApi": {
+          "id": "a0jFVFlGBhHXa3dm",
+          "name": "Slack - Inbox Operator"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('Parse Classification').first().json;\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    action: \"ESCALATED_SLACK\",\n    category: d.category,\n    priority: d.priority,\n    from: d.fromAddress,\n    subject: d.subject\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        944,
+        -832
+      ],
+      "id": "6104a31e-f77e-43d8-b081-1c314074e141",
+      "name": "Code in JavaScript1"
     }
   ],
   "pinData": {},
@@ -742,7 +782,13 @@
     },
     "Route by Category": {
       "main": [
-        [],
+        [
+          {
+            "node": "Alert High Priority",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [],
         [
           {
@@ -799,6 +845,17 @@
           }
         ]
       ]
+    },
+    "Alert High Priority": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -806,7 +863,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "bc30a13a-8f59-47b7-b059-89e7cf1b8f9c",
+  "versionId": "1a041a66-7abc-494c-9396-2924eae3e8f9",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "feddd20a06f3f583b8a4b677260ef9430851629f74097d296fdaa301e5136807"
