@@ -17,8 +17,8 @@
       "type": "n8n-nodes-base.gmailTrigger",
       "typeVersion": 1.4,
       "position": [
-        0,
-        0
+        -240,
+        -240
       ],
       "id": "cf92e066-52a9-4726-ba8b-2f87a4e59e96",
       "name": "Gmail Trigger",
@@ -52,8 +52,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        208,
-        0
+        -64,
+        -128
       ],
       "id": "7b6532fd-45d2-4105-a6c5-6389851d2d14",
       "name": "Classify Intent",
@@ -71,8 +71,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        416,
-        0
+        96,
+        -224
       ],
       "id": "a07e61d3-ede4-48a4-be83-6cb09f4b90b1",
       "name": "Parse Classification"
@@ -100,8 +100,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        624,
-        0
+        416,
+        -224
       ],
       "id": "1b3dafc7-4692-49e2-a49a-0d814a69c089",
       "name": "Draft Reply",
@@ -111,6 +111,245 @@
           "name": "Groq API"
         }
       }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pull the AI-generated reply text from the Draft Reply (Groq) response.\nconst draftText = $input.first().json.choices[0].message.content.trim();\n\n// Reach back to Parse Classification for the email metadata.\nconst meta = $('Parse Classification').first().json;\n\nreturn [\n  {\n    json: {\n      draftText: draftText,\n      threadId: meta.threadId,\n      emailId: meta.emailId,\n      subject: meta.subject,\n      toAddress: meta.fromAddress,   // we reply TO the original sender\n      toName: meta.fromName,\n      intent: meta.intent,\n      priority: meta.priority,\n      // pre-build the reply subject (Re: ...) once, reused downstream\n      replySubject: meta.subject.startsWith(\"Re:\") ? meta.subject : \"Re: \" + meta.subject\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        624,
+        -112
+      ],
+      "id": "601406c2-7aba-437e-ad0e-e6ea7d594c85",
+      "name": "Prepare Draft"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "={{ $json.replySubject }}",
+        "message": "={{ $json.draftText }}",
+        "options": {
+          "sendTo": "={{ $json.toAddress }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        784,
+        -224
+      ],
+      "id": "4a4130ef-8ae0-4417-85e4-12447af3b956",
+      "name": "Create Gmail Draft",
+      "webhookId": "f7bae08d-92e6-47f8-a7c5-ce3dc78f02ad",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QL7cF3zz7kjLa6bK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "=hamza.asif6182.2@gmail.com",
+        "subject": "={{ \"[APPROVAL NEEDED] \" + $('Prepare Draft').first().json.replySubject }}",
+        "message": "={{ \"<h3>Draft reply awaiting your approval</h3>\" + \"<p><b>To:</b> \" + $('Prepare Draft').first().json.toAddress + \"<br><b>Intent:</b> \" + $('Prepare Draft').first().json.intent + \" | <b>Priority:</b> \" + $('Prepare Draft').first().json.priority + \"</p>\" + \"<hr><p><b>Proposed reply:</b></p><pre style='white-space:pre-wrap;font-family:sans-serif'>\" + $('Prepare Draft').first().json.draftText + \"</pre><hr>\" + \"<p><a href='\" + $execution.resumeUrl + \"&decision=approve' style='padding:10px 20px;background:#2e7d32;color:#fff;text-decoration:none;border-radius:4px;'>✓ APPROVE &amp; SEND</a>&nbsp;&nbsp;&nbsp;<a href='\" + $execution.resumeUrl + \"&decision=reject' style='padding:10px 20px;background:#c62828;color:#fff;text-decoration:none;border-radius:4px;'>✗ REJECT</a></p>\" }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        960,
+        -112
+      ],
+      "id": "7ddc6943-df94-43ef-9c52-99e77bc29a9e",
+      "name": "Send Approval Request",
+      "webhookId": "c94947a7-bf98-44ec-a5b5-5c552c0adec5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QL7cF3zz7kjLa6bK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resume": "webhook",
+        "limitWaitTime": true,
+        "resumeUnit": "days",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        -208
+      ],
+      "id": "e8449c3b-17f4-40c3-bfe5-7acbd4f47188",
+      "name": "Approval Gate",
+      "webhookId": "5e7b0c2d-e5d5-4214-ad5f-6280c489eaab"
+    },
+    {
+      "parameters": {
+        "jsCode": "const resume = $input.first().json;\nconst decision =\n  resume.query?.decision ||\n  resume.decision ||\n  (resume.body && resume.body.decision) ||\n  \"unknown\";\n\nconst draft = $('Prepare Draft').first().json;\n\nreturn [\n  {\n    json: {\n      decision: decision,\n      approved: decision === \"approve\",\n      draftText: draft.draftText,\n      threadId: draft.threadId,\n      emailId: draft.emailId,\n      toAddress: draft.toAddress,\n      replySubject: draft.replySubject,\n      intent: draft.intent,\n      priority: draft.priority\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        -96
+      ],
+      "id": "19f6a62c-1b19-4927-a349-5b771c8789fa",
+      "name": "Read Decision"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b9135372-166a-4d38-b4e4-066868a7db8d",
+              "leftValue": "=={{ $json.fromAddress.toLowerCase() }}",
+              "rightValue": "mailer-daemon",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "4c13732f-a7ba-4d23-a394-9efa1c8f356a",
+              "leftValue": "=={{ $json.fromAddress.toLowerCase() }}",
+              "rightValue": "no-reply",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "1e41a887-366d-40b8-a48d-e4960b1b8311",
+              "leftValue": "=={{ $json.fromAddress.toLowerCase() }}",
+              "rightValue": "noreply",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        240,
+        -112
+      ],
+      "id": "4105ec0a-b2e0-4362-ae88-5e6abc6f62f0",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('Parse Classification').first().json;\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    action: \"SKIPPED_SYSTEM_EMAIL\",\n    from: d.fromAddress,\n    subject: d.subject\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        416,
+        0
+      ],
+      "id": "d32d295a-8319-4990-89c5-43a8cc285d0e",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e3783ab7-72ce-4131-bffd-d9e3eb5330a7",
+              "leftValue": "={{ $json.approved }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1440,
+        -208
+      ],
+      "id": "9426e760-1952-4a47-a169-5b802a9b538f",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $json.emailId }}",
+        "emailType": "text",
+        "message": "={{ $json.draftText }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1648,
+        -352
+      ],
+      "id": "62f3ed02-173a-4d97-8c75-cbe3c568218c",
+      "name": "Reply to a message",
+      "webhookId": "5c4f312d-062f-4f3c-810d-21b71fd5dd26",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "QL7cF3zz7kjLa6bK",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('Read Decision').first().json;\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    action: \"SENT\",\n    decision: d.decision,\n    intent: d.intent,\n    priority: d.priority,\n    to: d.toAddress,\n    subject: d.replySubject,\n    threadId: d.threadId,\n    draftPreview: (d.draftText || \"\").slice(0, 120)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1856,
+        -304
+      ],
+      "id": "fb165e56-3963-4f1a-9c61-7770ab986b87",
+      "name": "Log Sent"
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('Read Decision').first().json;\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    action: \"REJECTED\",\n    decision: d.decision,\n    intent: d.intent,\n    priority: d.priority,\n    to: d.toAddress,\n    subject: d.replySubject,\n    threadId: d.threadId,\n    draftPreview: (d.draftText || \"\").slice(0, 120)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1648,
+        -112
+      ],
+      "id": "950013b1-6c87-4185-88d5-c86391227ac0",
+      "name": "Log Rejected"
     }
   ],
   "pinData": {},
@@ -141,7 +380,120 @@
       "main": [
         [
           {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Draft Reply": {
+      "main": [
+        [
+          {
+            "node": "Prepare Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Draft": {
+      "main": [
+        [
+          {
+            "node": "Create Gmail Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Gmail Draft": {
+      "main": [
+        [
+          {
+            "node": "Send Approval Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Approval Request": {
+      "main": [
+        [
+          {
+            "node": "Approval Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approval Gate": {
+      "main": [
+        [
+          {
+            "node": "Read Decision",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Decision": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
             "node": "Draft Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Reply to a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Log Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply to a message": {
+      "main": [
+        [
+          {
+            "node": "Log Sent",
             "type": "main",
             "index": 0
           }
@@ -154,7 +506,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "a64cbea8-982c-45ff-bd61-75e57e9079da",
+  "versionId": "876a2b78-8303-4510-87a4-e65258d980fc",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "feddd20a06f3f583b8a4b677260ef9430851629f74097d296fdaa301e5136807"
