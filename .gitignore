@@ -24,3 +24,9 @@ Thumbs.db
 g_cloud.txt
 *secret*
 *credentials*.txt
+
+# RAG service
+rag-service/venv/
+rag-service/chroma_db/
+rag-service/__pycache__/
+rag-service/.env
