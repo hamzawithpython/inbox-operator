@@ -100,8 +100,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        560,
-        -496
+        624,
+        -624
       ],
       "id": "1b3dafc7-4692-49e2-a49a-0d814a69c089",
       "name": "Draft Reply",
@@ -114,13 +114,13 @@
     },
     {
       "parameters": {
-        "jsCode": "// Pull the AI-generated reply text from the Draft Reply (Groq) response.\nconst draftText = $input.first().json.choices[0].message.content.trim();\n\n// Reach back to Parse Classification for the email metadata.\nconst meta = $('Parse Classification').first().json;\n\nreturn [\n  {\n    json: {\n      draftText: draftText,\n      threadId: meta.threadId,\n      emailId: meta.emailId,\n      subject: meta.subject,\n      toAddress: meta.fromAddress,   // we reply TO the original sender\n      toName: meta.fromName,\n      intent: meta.intent,\n      priority: meta.priority,\n      // pre-build the reply subject (Re: ...) once, reused downstream\n      replySubject: meta.subject.startsWith(\"Re:\") ? meta.subject : \"Re: \" + meta.subject\n    }\n  }\n];"
+        "jsCode": "// Pull the AI-generated reply text from the Draft Reply (Groq) response.\nconst draftText = $input.first().json.choices[0].message.content.trim();\n\n// Reach back to Parse Classification for the email metadata.\nconst meta = $('Parse Classification').first().json;\n\nreturn [\n  {\n    json: {\n      draftText: draftText,\n      threadId: meta.threadId,\n      emailId: meta.emailId,\n      subject: meta.subject,\n      toAddress: meta.fromAddress,   // we reply TO the original sender\n      toName: meta.fromName,\n      category: meta.category,\n      priority: meta.priority,\n      // pre-build the reply subject (Re: ...) once, reused downstream\n      replySubject: meta.subject.startsWith(\"Re:\") ? meta.subject : \"Re: \" + meta.subject\n    }\n  }\n];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        784,
-        -352
+        1584,
+        -800
       ],
       "id": "601406c2-7aba-437e-ad0e-e6ea7d594c85",
       "name": "Prepare Draft"
@@ -154,7 +154,7 @@
       "parameters": {
         "sendTo": "=hamza.asif6182.2@gmail.com",
         "subject": "={{ \"[APPROVAL NEEDED] \" + $('Prepare Draft').first().json.replySubject }}",
-        "message": "={{ \"<h3>Draft reply awaiting your approval</h3>\" + \"<p><b>To:</b> \" + $('Prepare Draft').first().json.toAddress + \"<br><b>Intent:</b> \" + $('Prepare Draft').first().json.intent + \" | <b>Priority:</b> \" + $('Prepare Draft').first().json.priority + \"</p>\" + \"<hr><p><b>Proposed reply:</b></p><pre style='white-space:pre-wrap;font-family:sans-serif'>\" + $('Prepare Draft').first().json.draftText + \"</pre><hr>\" + \"<p><a href='\" + $execution.resumeUrl + \"&decision=approve' style='padding:10px 20px;background:#2e7d32;color:#fff;text-decoration:none;border-radius:4px;'>✓ APPROVE &amp; SEND</a>&nbsp;&nbsp;&nbsp;<a href='\" + $execution.resumeUrl + \"&decision=reject' style='padding:10px 20px;background:#c62828;color:#fff;text-decoration:none;border-radius:4px;'>✗ REJECT</a></p>\" }}",
+        "message": "={{ \"<h3>Draft reply awaiting your approval</h3>\" + \"<p><b>To:</b> \" + $('Prepare Draft').first().json.toAddress + \" | <b>Category:</b> \" + $('Prepare Draft').first().json.category + \" | <b>Priority:</b> \" + $('Prepare Draft').first().json.priority + \"</p>\" + \"<hr><p><b>Proposed reply:</b></p><pre style='white-space:pre-wrap;font-family:sans-serif'>\" + $('Prepare Draft').first().json.draftText + \"</pre><hr>\" + \"<p><a href='\" + $execution.resumeUrl + \"&decision=approve' style='padding:10px 20px;background:#2e7d32;color:#fff;text-decoration:none;border-radius:4px;'>✓ APPROVE &amp; SEND</a>&nbsp;&nbsp;&nbsp;<a href='\" + $execution.resumeUrl + \"&decision=reject' style='padding:10px 20px;background:#c62828;color:#fff;text-decoration:none;border-radius:4px;'>✗ REJECT</a></p>\" }}",
         "options": {}
       },
       "type": "n8n-nodes-base.gmail",
@@ -437,8 +437,8 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        384,
-        -720
+        368,
+        -1104
       ],
       "id": "bf77bd02-3b2c-4dcd-949a-9c3c03763d8c",
       "name": "Route by Category",
@@ -518,8 +518,8 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.4,
       "position": [
-        832,
-        -880
+        624,
+        -944
       ],
       "id": "6915d279-937d-464b-b536-ff440f37cd9a",
       "name": "Draft Finance Reply",
@@ -541,8 +541,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        800,
-        -656
+        624,
+        -800
       ],
       "id": "8ac69b31-6ab6-4fbf-b208-452a0ba3f004",
       "name": "File Promotion",
@@ -565,8 +565,8 @@
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        1008,
-        -656
+        832,
+        -800
       ],
       "id": "8841104a-c961-4a72-b004-bee524f4c635",
       "name": "Archive Promotion",
@@ -585,8 +585,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1216,
-        -656
+        1040,
+        -800
       ],
       "id": "adcd2e0d-95e2-471d-b54d-f3cd88f6562e",
       "name": "Log Promotion"
@@ -605,8 +605,8 @@
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.5,
       "position": [
-        592,
-        -976
+        624,
+        -1376
       ],
       "id": "97a6fa4d-3c19-420b-8b3c-ec87f06fe8b9",
       "name": "Alert High Priority",
@@ -625,11 +625,51 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        944,
-        -832
+        864,
+        -1376
       ],
       "id": "6104a31e-f77e-43d8-b081-1c314074e141",
       "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://rag-service:8000/support-reply",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({\n     subject: $('Parse Classification').first().json.subject,\n     body: $('Parse Classification').first().json.bodyText,\n     from_name: $('Parse Classification').first().json.fromName\n   }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        624,
+        -1216
+      ],
+      "id": "0c0e8042-442f-4240-bce7-19bba386c5d8",
+      "name": "RAG Support Draft"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Reshape the RAG service response to match what Prepare Draft expects\n// (it reads choices[0].message.content).\nconst ragDraft = $input.first().json.draft;\n\nreturn [{\n  json: {\n    choices: [\n      { message: { content: ragDraft } }\n    ]\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        -1216
+      ],
+      "id": "851cfbd3-c071-4493-bce6-578fd6a9e166",
+      "name": "Adapt RAG Output"
     }
   ],
   "pinData": {},
@@ -789,7 +829,13 @@
             "index": 0
           }
         ],
-        [],
+        [
+          {
+            "node": "RAG Support Draft",
+            "type": "main",
+            "index": 0
+          }
+        ],
         [
           {
             "node": "Draft Finance Reply",
@@ -856,6 +902,28 @@
           }
         ]
       ]
+    },
+    "RAG Support Draft": {
+      "main": [
+        [
+          {
+            "node": "Adapt RAG Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Adapt RAG Output": {
+      "main": [
+        [
+          {
+            "node": "Prepare Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -863,7 +931,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "1a041a66-7abc-494c-9396-2924eae3e8f9",
+  "versionId": "973aac1f-7f1e-40a4-9808-0ac9f1a82c40",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "feddd20a06f3f583b8a4b677260ef9430851629f74097d296fdaa301e5136807"
