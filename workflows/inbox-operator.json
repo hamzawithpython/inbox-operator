@@ -276,7 +276,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const d = $('Read Decision').first().json;\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    action: \"SENT\",\n    decision: d.decision,\n    intent: d.intent,\n    priority: d.priority,\n    to: d.toAddress,\n    subject: d.replySubject,\n    threadId: d.threadId,\n    draftPreview: (d.draftText || \"\").slice(0, 120)\n  }\n}];"
+        "jsCode": "const d = $('Read Decision').first().json;\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    action: \"SENT\",\n    category: d.category || \"\",\n    priority: d.priority || \"\",\n    from: d.toAddress || \"\",\n    subject: d.replySubject || \"\"\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -289,7 +289,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const d = $('Read Decision').first().json;\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    action: \"REJECTED\",\n    decision: d.decision,\n    intent: d.intent,\n    priority: d.priority,\n    to: d.toAddress,\n    subject: d.replySubject,\n    threadId: d.threadId,\n    draftPreview: (d.draftText || \"\").slice(0, 120)\n  }\n}];"
+        "jsCode": "const d = $('Read Decision').first().json;\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    action: \"REJECTED\",\n    category: d.category || \"\",\n    priority: d.priority || \"\",\n    from: d.toAddress || \"\",\n    subject: d.replySubject || \"\"\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -580,7 +580,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const d = $('Parse Classification').first().json;\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    action: \"FILED_PROMOTION\",\n    category: d.category,\n    from: d.fromAddress,\n    subject: d.subject\n  }\n}];"
+        "jsCode": "const d = $('Parse Classification').first().json;\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    action: \"FILED_PROMOTION\",\n    category: d.category || \"\",\n    priority: d.priority || \"\",\n    from: d.fromAddress || \"\",\n    subject: d.subject || \"\"\n  }\n}];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -617,19 +617,6 @@
           "name": "Slack - Inbox Operator"
         }
       }
-    },
-    {
-      "parameters": {
-        "jsCode": "const d = $('Parse Classification').first().json;\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    action: \"ESCALATED_SLACK\",\n    category: d.category,\n    priority: d.priority,\n    from: d.fromAddress,\n    subject: d.subject\n  }\n}];"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        864,
-        -1376
-      ],
-      "id": "6104a31e-f77e-43d8-b081-1c314074e141",
-      "name": "Code in JavaScript1"
     },
     {
       "parameters": {
@@ -670,6 +657,427 @@
       ],
       "id": "851cfbd3-c071-4493-bce6-578fd6a9e166",
       "name": "Adapt RAG Output"
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('Parse Classification').first().json;\nreturn [{\n  json: {\n    timestamp: new Date().toISOString(),\n    action: \"ESCALATED_SLACK\",\n    category: d.category || \"\",\n    priority: d.priority || \"\",\n    from: d.fromAddress || \"\",\n    subject: d.subject || \"\"\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        -1376
+      ],
+      "id": "6104a31e-f77e-43d8-b081-1c314074e141",
+      "name": "Log High Priority"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1T-zt-RzcD2s2DTwPPMkCsmDhwZwRqPruoihEq6KIukc",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1T-zt-RzcD2s2DTwPPMkCsmDhwZwRqPruoihEq6KIukc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "action": "={{ $json.action }}",
+            "category": "={{ $json.category }}",
+            "priority": "={{ $json.priority }}",
+            "from": "={{ $json.from }}",
+            "subject": "={{ $json.subject }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "from",
+              "displayName": "from",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        3040,
+        -480
+      ],
+      "id": "7ee56065-cce3-4a3b-bbc6-894b7684baa0",
+      "name": "Sheet: Log Sent",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "SNW49zgF2MnVpNgT",
+          "name": "Google Sheets - test2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1T-zt-RzcD2s2DTwPPMkCsmDhwZwRqPruoihEq6KIukc",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1T-zt-RzcD2s2DTwPPMkCsmDhwZwRqPruoihEq6KIukc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "action": "={{ $json.action }}",
+            "category": "={{ $json.category }}",
+            "priority": "={{ $json.priority }}",
+            "from": "={{ $json.from }}",
+            "subject": "={{ $json.subject }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "from",
+              "displayName": "from",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2864,
+        -224
+      ],
+      "id": "e6726b2e-f884-472a-8632-b52c8a142b23",
+      "name": "Sheet: Log Rejected",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "SNW49zgF2MnVpNgT",
+          "name": "Google Sheets - test2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1T-zt-RzcD2s2DTwPPMkCsmDhwZwRqPruoihEq6KIukc",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1T-zt-RzcD2s2DTwPPMkCsmDhwZwRqPruoihEq6KIukc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "action": "={{ $json.action }}",
+            "category": "={{ $json.category }}",
+            "priority": "={{ $json.priority }}",
+            "from": "={{ $json.from }}",
+            "subject": "={{ $json.subject }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "from",
+              "displayName": "from",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1248,
+        -800
+      ],
+      "id": "1719a4d1-4c48-4f25-bec0-290df943d311",
+      "name": "Sheet: Log Promotion",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "SNW49zgF2MnVpNgT",
+          "name": "Google Sheets - test2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1T-zt-RzcD2s2DTwPPMkCsmDhwZwRqPruoihEq6KIukc",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1T-zt-RzcD2s2DTwPPMkCsmDhwZwRqPruoihEq6KIukc/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $json.timestamp }}",
+            "action": "={{ $json.action }}",
+            "category": "={{ $json.category }}",
+            "priority": "={{ $json.priority }}",
+            "from": "={{ $json.from }}",
+            "subject": "={{ $json.subject }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "action",
+              "displayName": "action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "category",
+              "displayName": "category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "from",
+              "displayName": "from",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1072,
+        -1376
+      ],
+      "id": "e7931cf5-a224-4377-9b8c-60eacb54d553",
+      "name": "Sheet: Log High Priority",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "SNW49zgF2MnVpNgT",
+          "name": "Google Sheets - test2"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -896,7 +1304,7 @@
       "main": [
         [
           {
-            "node": "Code in JavaScript1",
+            "node": "Log High Priority",
             "type": "main",
             "index": 0
           }
@@ -924,6 +1332,50 @@
           }
         ]
       ]
+    },
+    "Log Sent": {
+      "main": [
+        [
+          {
+            "node": "Sheet: Log Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Rejected": {
+      "main": [
+        [
+          {
+            "node": "Sheet: Log Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log Promotion": {
+      "main": [
+        [
+          {
+            "node": "Sheet: Log Promotion",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Log High Priority": {
+      "main": [
+        [
+          {
+            "node": "Sheet: Log High Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": false,
@@ -931,7 +1383,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "973aac1f-7f1e-40a4-9808-0ac9f1a82c40",
+  "versionId": "85db8ccc-5660-4390-a144-a9d8837cb454",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "feddd20a06f3f583b8a4b677260ef9430851629f74097d296fdaa301e5136807"
