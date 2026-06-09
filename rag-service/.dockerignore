@@ -1,0 +1,7 @@
+venv/
+chroma_db/
+__pycache__/
+.env
+*.json
+!knowledge_base.json
+test_req*.json

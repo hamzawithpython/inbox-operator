@@ -14,3 +14,13 @@
       - N8N_SECURE_COOKIE=false
     volumes:
       - ./n8n_data:/home/node/.n8n
+
+      
+  rag-service:
+    build: ./rag-service
+    container_name: inbox-operator-rag
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - GROQ_API_KEY=${GROQ_API_KEY}
